@@ -20,7 +20,7 @@ interface Nomination {
 }
 
 const API_URL = 'https://functions.poehali.dev/e2f0afd8-235b-4f3f-84c6-b28f4d91636b';
-const VOTE_END_DATE = new Date('2025-12-31T23:59:59');
+const VOTE_END_DATE = new Date('2025-12-20T22:00:00+03:00');
 
 export default function Index() {
   const [nominations, setNominations] = useState<Nomination[]>([]);
