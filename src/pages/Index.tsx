@@ -13,26 +13,19 @@ interface Nomination {
   votes: number;
 }
 
-const NOMINATIONS: Nomination[] = [
-  { id: 1, title: 'Лучший новичок года', emoji: '🌟', description: 'За впечатляющий старт и быстрый рост', votes: 0 },
-  { id: 2, title: 'Мастер креатива', emoji: '🎨', description: 'За уникальный подход и творческие решения', votes: 0 },
-  { id: 3, title: 'Король контента', emoji: '👑', description: 'За постоянное создание качественного контента', votes: 0 },
-  { id: 4, title: 'Душа компании', emoji: '💫', description: 'За вклад в атмосферу и командный дух', votes: 0 },
-  { id: 5, title: 'Прорыв года', emoji: '🚀', description: 'За самый впечатляющий прогресс', votes: 0 },
-  { id: 6, title: 'Технический гений', emoji: '⚡', description: 'За выдающиеся технические достижения', votes: 0 },
-  { id: 7, title: 'Вдохновитель', emoji: '✨', description: 'За мотивацию и поддержку других', votes: 0 },
-  { id: 8, title: 'Легенда сообщества', emoji: '🏆', description: 'За долгосрочный вклад в развитие', votes: 0 },
-  { id: 9, title: 'Инноватор', emoji: '💡', description: 'За внедрение новых идей и подходов', votes: 0 },
-  { id: 10, title: 'Звезда года', emoji: '⭐', description: 'За общее превосходство во всём', votes: 0 }
-];
-
+const API_URL = 'https://functions.poehali.dev/e2f0afd8-235b-4f3f-84c6-b28f4d91636b';
 const VOTE_END_DATE = new Date('2025-12-31T23:59:59');
 
 export default function Index() {
-  const [nominations, setNominations] = useState<Nomination[]>(NOMINATIONS);
+  const [nominations, setNominations] = useState<Nomination[]>([]);
   const [votedFor, setVotedFor] = useState<Set<number>>(new Set());
   const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
   const [showResults, setShowResults] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchNominations();
+  }, []);
 
   useEffect(() => {
     const calculateTimeLeft = () => {
@@ -56,23 +49,65 @@ export default function Index() {
     return () => clearInterval(timer);
   }, []);
 
-  const handleVote = (id: number) => {
+  const fetchNominations = async () => {
+    try {
+      const response = await fetch(API_URL);
+      const data = await response.json();
+      setNominations(data.nominations);
+      setVotedFor(new Set(data.votedFor));
+      setLoading(false);
+    } catch (error) {
+      toast.error('Ошибка загрузки данных');
+      setLoading(false);
+    }
+  };
+
+  const handleVote = async (id: number) => {
     if (votedFor.has(id)) {
       toast.error('Вы уже проголосовали за эту номинацию!');
       return;
     }
 
-    setNominations(prev =>
-      prev.map(nom =>
-        nom.id === id ? { ...nom, votes: nom.votes + 1 } : nom
-      )
-    );
-    setVotedFor(prev => new Set(prev).add(id));
-    toast.success('Ваш голос учтён!');
+    try {
+      const response = await fetch(API_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ nominationId: id })
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setNominations(prev =>
+          prev.map(nom =>
+            nom.id === id ? { ...nom, votes: nom.votes + 1 } : nom
+          )
+        );
+        setVotedFor(prev => new Set(prev).add(id));
+        toast.success('Ваш голос учтён!');
+      } else {
+        toast.error(data.error || 'Ошибка голосования');
+      }
+    } catch (error) {
+      toast.error('Ошибка соединения с сервером');
+    }
   };
 
   const totalVotes = nominations.reduce((sum, nom) => sum + nom.votes, 0);
   const sortedNominations = [...nominations].sort((a, b) => b.votes - a.votes);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <Icon name="Loader2" size={48} className="animate-spin text-primary mx-auto mb-4" />
+          <p className="text-xl text-muted-foreground">Загрузка...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
