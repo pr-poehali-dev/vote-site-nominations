@@ -7,11 +7,11 @@
       "expectedStatus": 200
     },
     {
-      "name": "Vote for nomination",
+      "name": "Vote for candidate",
       "method": "POST",
       "path": "/",
       "body": {
-        "nominationId": 1
+        "candidateId": 1
       },
       "expectedStatus": 200,
       "expectedBody": {
