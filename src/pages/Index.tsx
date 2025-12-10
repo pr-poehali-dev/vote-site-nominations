@@ -114,7 +114,7 @@ export default function Index() {
       <div className="container mx-auto px-4 py-12 max-w-7xl">
         <div className="text-center mb-16 animate-fade-in">
           <h1 className="text-6xl md:text-8xl font-bold mb-6 text-gradient">
-            СЛЕЙ 2025
+            СЛЕЙ КЛД ЧАТА 2025
           </h1>
           <p className="text-xl md:text-2xl text-muted-foreground mb-8">
             Голосование за лучших из лучших
